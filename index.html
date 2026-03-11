@@ -51,6 +51,35 @@
             margin-top: 0;
             margin-right: 80px;
         }
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.6;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            opacity: 1;
+            background-color: #2c2c2c;
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -252,58 +281,81 @@
     </select>
 
     <h1 data-i18n="title">G̸E̵N̸E̵R̶A̵D̷O̵R̶ ̶Z̷A̵L̸G̷O̵</h1>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('generate')" data-i18n="tabGenerate">Generar Zalgo</button>
+        <button class="tab-btn" onclick="switchTab('clean')" data-i18n="tabClean">Eliminar Zalgo</button>
+    </div>
     
-    <div class="grid">
-        <div>
-            <label for="inputText"><strong data-i18n="normalText">Texto Normal:</strong></label>
-            <textarea id="inputText" data-i18n-ph="normalPh" placeholder="Escribe aquí el texto..."></textarea>
-        </div>
-        <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                <label for="outputText"><strong data-i18n="zalgoText">Texto Zalgo:</strong></label>
-                <label id="overlapWrapper" style="font-size: 13px; color: var(--accent); cursor: pointer;" title="Permite que el texto rompa los límites de la caja">
-                    <input type="checkbox" id="overlapToggle" onchange="toggleOverlap()"> <span data-i18n="overlap">Desbordar</span>
-                </label>
+    <div id="tab-generate" class="tab-content active">
+        <div class="grid">
+            <div>
+                <label for="inputText"><strong data-i18n="normalText">Texto Normal:</strong></label>
+                <textarea id="inputText" data-i18n-ph="normalPh" placeholder="Escribe aquí el texto..."></textarea>
             </div>
-            <div style="position: relative; height: 150px;">
-                <textarea id="outputText" readonly data-i18n-ph="zalgoPh" placeholder="A̵q̸u̷í̷ ̸a̵p̵a̵r̵e̷c̷e̶ ̴l̶a̷ ̷m̶a̷g̷i̶a̴.̶.̷.̸" style="height: 100%; resize: none;"></textarea>
-                <div id="outputOverlay"></div>
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <label for="outputText"><strong data-i18n="zalgoText">Texto Zalgo:</strong></label>
+                    <label id="overlapWrapper" style="font-size: 13px; color: var(--accent); cursor: pointer;" title="Permite que el texto rompa los límites de la caja">
+                        <input type="checkbox" id="overlapToggle" onchange="toggleOverlap()"> <span data-i18n="overlap">Desbordar</span>
+                    </label>
+                </div>
+                <div style="position: relative; height: 150px;">
+                    <textarea id="outputText" readonly data-i18n-ph="zalgoPh" placeholder="A̵q̸u̷í̷ ̸a̵p̵a̵r̵e̷c̷e̶ ̴l̶a̷ ̷m̶a̷g̷i̶a̴.̶.̷.̸" style="height: 100%; resize: none;"></textarea>
+                    <div id="outputOverlay"></div>
+                </div>
             </div>
         </div>
+
+        <div class="controls">
+            <label class="realtime-toggle" id="realtimeWrapper" title="Actualiza el texto automáticamente al cambiar algo">
+                <input type="checkbox" id="realtimePreview" checked>
+                <span data-i18n="realtime">Tiempo real</span>
+            </label>
+            
+            <div class="slider-group">
+                <label data-i18n="up">Arriba:</label>
+                <input type="range" id="slideUp" min="0" max="100" value="5">
+                <input type="number" id="numUp" value="5" min="0">
+            </div>
+            <div class="slider-group">
+                <label data-i18n="mid">Medio:</label>
+                <input type="range" id="slideMid" min="0" max="100" value="3">
+                <input type="number" id="numMid" value="3" min="0">
+            </div>
+            <div class="slider-group">
+                <label data-i18n="down">Abajo:</label>
+                <input type="range" id="slideDown" min="0" max="100" value="5">
+                <input type="number" id="numDown" value="5" min="0">
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button id="btnGenerar" onclick="generarZalgo()" data-i18n="btnGenerateAction">¡Generar Zalgo!</button>
+            <button onclick="copiarTexto('outputText')" data-i18n="btnCopy">Copiar Resultado</button>
+            <button onclick="toggleOpciones()" class="btn-secondary" data-i18n="btnOptions">Opciones de Caracteres</button>
+        </div>
+
+        <div class="options-panel" id="optionsPanel">
+            <p style="font-size: 14px; margin-top: 0;" data-i18n="optionsDesc">Selecciona qué caracteres quieres habilitar para la generación. ¡Se actualiza en tiempo real!</p>
+            <div id="charOptionsContainer"></div>
+        </div>
     </div>
 
-    <div class="controls">
-        <label class="realtime-toggle" id="realtimeWrapper" title="Actualiza el texto automáticamente al cambiar algo">
-            <input type="checkbox" id="realtimePreview" checked>
-            <span data-i18n="realtime">Tiempo real</span>
-        </label>
-        
-        <div class="slider-group">
-            <label data-i18n="up">Arriba:</label>
-            <input type="range" id="slideUp" min="0" max="100" value="5">
-            <input type="number" id="numUp" value="5" min="0">
+    <div id="tab-clean" class="tab-content">
+        <div class="grid">
+            <div>
+                <label for="cleanInput"><strong data-i18n="zalgoInputText">Texto Zalgo:</strong></label>
+                <textarea id="cleanInput" data-i18n-ph="zalgoInputPh" placeholder="Pega aquí el texto con Zalgo..."></textarea>
+            </div>
+            <div>
+                <label for="cleanOutput"><strong data-i18n="cleanText">Texto Limpio:</strong></label>
+                <textarea id="cleanOutput" readonly data-i18n-ph="cleanedPh" placeholder="Aquí aparecerá el texto original..."></textarea>
+            </div>
         </div>
-        <div class="slider-group">
-            <label data-i18n="mid">Medio:</label>
-            <input type="range" id="slideMid" min="0" max="100" value="3">
-            <input type="number" id="numMid" value="3" min="0">
+        <div class="buttons" style="margin-top: 20px;">
+            <button onclick="copiarTexto('cleanOutput')" data-i18n="btnCopy">Copiar Resultado</button>
         </div>
-        <div class="slider-group">
-            <label data-i18n="down">Abajo:</label>
-            <input type="range" id="slideDown" min="0" max="100" value="5">
-            <input type="number" id="numDown" value="5" min="0">
-        </div>
-    </div>
-
-    <div class="buttons">
-        <button id="btnGenerar" onclick="generarZalgo()" data-i18n="btnGenerate">¡Generar Zalgo!</button>
-        <button onclick="copiarTexto()" data-i18n="btnCopy">Copiar Resultado</button>
-        <button onclick="toggleOpciones()" class="btn-secondary" data-i18n="btnOptions">Opciones de Caracteres</button>
-    </div>
-
-    <div class="options-panel" id="optionsPanel">
-        <p style="font-size: 14px; margin-top: 0;" data-i18n="optionsDesc">Selecciona qué caracteres quieres habilitar para la generación. ¡Se actualiza en tiempo real!</p>
-        <div id="charOptionsContainer"></div>
     </div>
 </div>
 
@@ -311,10 +363,16 @@
     const i18n = {
         es: {
             title: "G̸E̵N̸E̵R̶A̵D̷O̵R̶ ̶Z̷A̵L̸G̷O̵",
+            tabGenerate: "Generar Zalgo",
+            tabClean: "Eliminar Zalgo",
             normalText: "Texto Normal:",
             normalPh: "Escribe aquí el texto...",
             zalgoText: "Texto Zalgo:",
             zalgoPh: "A̵q̸u̷í̷ ̸a̵p̵a̵r̵e̷c̷e̶ ̴l̶a̷ ̷m̶a̷g̷i̶a̴.̶.̷.̸",
+            zalgoInputText: "Texto Zalgo:",
+            zalgoInputPh: "Pega aquí el texto con Zalgo...",
+            cleanText: "Texto Limpio:",
+            cleanedPh: "Aquí aparecerá el texto original...",
             overlap: "Desbordar",
             overlapTitle: "Permite que el texto rompa los límites de la caja",
             realtime: "Tiempo real",
@@ -322,7 +380,7 @@
             up: "Arriba:",
             mid: "Medio:",
             down: "Abajo:",
-            btnGenerate: "¡Generar Zalgo!",
+            btnGenerateAction: "¡Generar Zalgo!",
             btnCopy: "Copiar Resultado",
             btnOptions: "Opciones de Caracteres",
             optionsDesc: "Selecciona qué caracteres quieres habilitar para la generación. ¡Se actualiza en tiempo real!",
@@ -336,10 +394,16 @@
         },
         en: {
             title: "U̶L̵T̷I̵M̸A̵T̷E̶ ̵Z̶A̵L̷G̸O̵",
+            tabGenerate: "Generate Zalgo",
+            tabClean: "Remove Zalgo",
             normalText: "Normal Text:",
             normalPh: "Type your text here...",
             zalgoText: "Zalgo Text:",
-            zalgoPh: "M̵a̸g̷i̷c̸ ̵h̵a̵p̵p̵e̷n̷s̶ ̴h̶e̷r̷e̴.̶.̷.̸",
+            zalgoPh: "M̵a̸g̷i̷c̸ ̵h̵a̵p̵p̵e̷n̵s̶ ̴h̶e̷r̷e̴.̶.̷.̸",
+            zalgoInputText: "Zalgo Text:",
+            zalgoInputPh: "Paste Zalgo text here...",
+            cleanText: "Clean Text:",
+            cleanedPh: "Original text will appear here...",
             overlap: "Overflow",
             overlapTitle: "Allows text to break the box limits",
             realtime: "Real-time",
@@ -347,7 +411,7 @@
             up: "Up:",
             mid: "Middle:",
             down: "Down:",
-            btnGenerate: "Generate Zalgo!",
+            btnGenerateAction: "Generate Zalgo!",
             btnCopy: "Copy Result",
             btnOptions: "Character Options",
             optionsDesc: "Select which characters you want to enable. It updates in real-time!",
@@ -374,6 +438,17 @@
     };
 
     let debounceTimeout;
+
+    window.switchTab = function(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => 
+            btn.onclick.toString().includes(tabName)
+        );
+        activeBtn.classList.add('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+    };
 
     function initLanguage() {
         const langs = navigator.languages || [navigator.language || navigator.userLanguage];
@@ -425,7 +500,7 @@
             }, 100); 
         } else {
             btnGenerar.style.opacity = '1';
-            btnGenerar.innerText = i18n[currentLang].btnGenerate;
+            btnGenerar.innerText = i18n[currentLang].btnGenerateAction;
         }
     }
 
@@ -450,6 +525,10 @@
 
     document.getElementById('inputText').addEventListener('input', checkRealtimeUpdate);
     document.getElementById('realtimePreview').addEventListener('change', checkRealtimeUpdate);
+
+    document.getElementById('cleanInput').addEventListener('input', function() {
+        document.getElementById('cleanOutput').value = this.value.replace(/[\u0300-\u036f\u0489]/g, '');
+    });
 
     function buildOptions() {
         const container = document.getElementById('charOptionsContainer');
@@ -579,17 +658,18 @@
         overlay.style.transform = `translateY(-${this.scrollTop}px)`;
     });
 
-    window.copiarTexto = function() {
-        const out = document.getElementById('outputText');
+    window.copiarTexto = function(targetId) {
+        const out = document.getElementById(targetId);
         out.select();
         document.execCommand('copy');
         
         const btn = event.target;
+        const originalText = btn.innerText;
         btn.innerText = i18n[currentLang].copied;
         btn.style.backgroundColor = "#4caf50";
         btn.style.color = "white";
         setTimeout(() => {
-            btn.innerText = i18n[currentLang].btnCopy;
+            btn.innerText = originalText;
             btn.style.backgroundColor = "";
             btn.style.color = "";
         }, 1500);
